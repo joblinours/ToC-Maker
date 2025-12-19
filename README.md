@@ -13,6 +13,7 @@ Un plugin Obsidian pour générer ou rafraîchir, en un clic droit, une note de 
 - **Maximum heading depth** : profondeur H1–H6 (défaut H3).
 - **Exclude patterns** : sous-chaînes séparées par des virgules, appliquées aux chemins complets.
 - **Afficher le dossier primaire** : préfixe chaque note par son dossier principal.
+- **Ordre de tri** : choix entre tri numérique, alphabétique ou mixte (lettres d'abord, chiffres ensuite).
 
 ## Installation (manuelle)
 1. `npm install`

@@ -6,13 +6,15 @@ export interface FolderTocSettings {
   maxHeadingDepth: number;
   excludePatterns: string;
   showPrimaryFolderName: boolean;
+  sortMode: "numeric" | "alphabetic" | "mixed";
 }
 
 export const DEFAULT_SETTINGS: FolderTocSettings = {
   noteTitle: "Table of content",
   maxHeadingDepth: 3,
   excludePatterns: "",
-  showPrimaryFolderName: true
+  showPrimaryFolderName: true,
+  sortMode: "mixed"
 };
 
 export class FolderTocSettingTab extends PluginSettingTab {
@@ -68,6 +70,19 @@ export class FolderTocSettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.showPrimaryFolderName)
         .onChange(async (value) => {
           this.plugin.settings.showPrimaryFolderName = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName("Ordre de tri")
+      .setDesc("Choisir le tri des notes: numérique, alphabétique ou mixte (lettres d'abord, puis chiffres).")
+      .addDropdown(drop => drop
+        .addOption("numeric", "Numérique")
+        .addOption("alphabetic", "Alphabétique")
+        .addOption("mixed", "Mixte")
+        .setValue(this.plugin.settings.sortMode)
+        .onChange(async (value: "numeric" | "alphabetic" | "mixed") => {
+          this.plugin.settings.sortMode = value;
           await this.plugin.saveSettings();
         }));
   }

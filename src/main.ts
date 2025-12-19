@@ -4,6 +4,7 @@ import {DEFAULT_SETTINGS, FolderTocSettingTab, FolderTocSettings} from "./settin
 const DEFAULT_TOC_TITLE = "Table of content";
 
 type Heading = { level: number; text: string };
+type SortMode = "numeric" | "alphabetic" | "mixed";
 
 export default class FolderTocPlugin extends Plugin {
   settings: FolderTocSettings;
@@ -60,9 +61,11 @@ export default class FolderTocPlugin extends Plugin {
       return;
     }
 
+    const sortedFiles = this.sortFiles(folder, targetFiles);
+
     const lines: string[] = [`# ${tocTitle}`, ""];
 
-    for (const file of targetFiles) {
+    for (const file of sortedFiles) {
       const display = this.formatNoteDisplay(folder, file);
       lines.push(`- [[${this.toLinkPath(file)}|${display}]]`);
 
@@ -102,8 +105,78 @@ export default class FolderTocPlugin extends Plugin {
     return this.app.vault.getMarkdownFiles()
       .filter(file => file.path.startsWith(prefix))
       .filter(file => file.path !== tocPath)
-      .filter(file => !this.matchesExclude(file.path, excluded))
-      .sort((a, b) => a.path.localeCompare(b.path));
+      .filter(file => !this.matchesExclude(file.path, excluded));
+  }
+
+  private sortFiles(folder: TFolder, files: TFile[]): TFile[] {
+    const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: "base"});
+    const mode: SortMode = this.settings.sortMode ?? "mixed";
+    const keyCache = new Map<string, string>();
+
+    const getKey = (file: TFile) => {
+      const cached = keyCache.get(file.path);
+      if (cached !== undefined) return cached;
+      const key = this.getNoteTitle(file).trim();
+      keyCache.set(file.path, key);
+      return key;
+    };
+
+    const compareAlphabetic = (a: TFile, b: TFile) => {
+      const keyA = getKey(a);
+      const keyB = getKey(b);
+      return collator.compare(keyA, keyB);
+    };
+
+    const compareNumeric = (a: TFile, b: TFile) => {
+      const keyA = getKey(a);
+      const keyB = getKey(b);
+      const numA = this.extractLeadingNumber(keyA);
+      const numB = this.extractLeadingNumber(keyB);
+
+      if (numA !== null && numB !== null) {
+        if (numA !== numB) return numA - numB;
+        return collator.compare(keyA, keyB);
+      }
+      if (numA !== null) return -1;
+      if (numB !== null) return 1;
+      return collator.compare(keyA, keyB);
+    };
+
+    const compareMixed = (a: TFile, b: TFile) => {
+      const keyA = getKey(a);
+      const keyB = getKey(b);
+
+      const startsWithLetterA = /^[A-Za-z]/.test(keyA);
+      const startsWithLetterB = /^[A-Za-z]/.test(keyB);
+      if (startsWithLetterA !== startsWithLetterB) {
+        return startsWithLetterA ? -1 : 1;
+      }
+
+      const startsWithDigitA = /^\d/.test(keyA);
+      const startsWithDigitB = /^\d/.test(keyB);
+      if (startsWithDigitA !== startsWithDigitB) {
+        return startsWithDigitA ? -1 : 1;
+      }
+
+      return collator.compare(keyA, keyB);
+    };
+
+    switch (mode) {
+    case "numeric":
+      return [...files].sort(compareNumeric);
+    case "alphabetic":
+      return [...files].sort(compareAlphabetic);
+    default:
+      return [...files].sort(compareMixed);
+    }
+  }
+
+  private extractLeadingNumber(text: string): number | null {
+    const match = text.match(/^\s*(\d+)/);
+    if (!match) return null;
+    const num = match[1];
+    if (!num) return null;
+    return Number.parseInt(num, 10);
   }
 
   private async extractHeadings(file: TFile): Promise<Heading[]> {
