@@ -1,0 +1,32 @@
+{
+    "name": "toc-maker",
+    "version": "0.1.0",
+    "description": "Generate folder-scoped tables of contents in Obsidian.",
+    "main": "main.js",
+    "type": "module",
+    "scripts": {
+        "dev": "node esbuild.config.mjs",
+        "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+        "lint": "eslint ."
+    },
+    "keywords": [
+        "obsidian",
+        "plugin",
+        "table-of-contents"
+    ],
+    "license": "0-BSD",
+    "devDependencies": {
+        "@eslint/js": "9.30.1",
+        "@types/node": "^16.11.6",
+        "esbuild": "0.25.5",
+        "eslint-plugin-obsidianmd": "0.1.9",
+        "globals": "14.0.0",
+        "jiti": "2.6.1",
+        "tslib": "2.4.0",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "8.35.1"
+    },
+    "dependencies": {
+        "obsidian": "latest"
+    }
+}

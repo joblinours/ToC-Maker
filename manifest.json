@@ -1,0 +1,10 @@
+{
+    "id": "toc-maker",
+    "name": "ToC-Maker",
+    "version": "0.1.0",
+    "minAppVersion": "0.15.0",
+    "description": "Create or refresh a Table of Content note for any folder via context menu.",
+    "author": "Jobl1n0urs",
+    "authorUrl": "https://www.joblin.be",
+    "isDesktopOnly": false
+}
